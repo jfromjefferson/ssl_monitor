@@ -40,7 +40,7 @@ class Service(models.Model):
     url = models.URLField()
     enabled = models.BooleanField(default=True)
     last_seen = models.DateTimeField(auto_now=True)
-    ssl_properties = models.TextField()
+    ssl_properties = models.TextField(blank=True, null=True)
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     updated = models.DateTimeField(auto_now=True, auto_now_add=False)
