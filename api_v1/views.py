@@ -7,7 +7,7 @@ from rest_framework import viewsets
 
 from api_v1.authentication import ApiAuthentication
 from api_v1.models import SysUser, Owner, Service
-from api_v1.serializers import UserSerializer, ServiceSerializer, SysUserSerializer
+from api_v1.serializers import UserSerializer, ServiceSerializer
 from utils.functions import get_owner, response_message, get_error_dict, certificate_info
 from utils.utils import CUSTOMER_PLAN_BASE
 
@@ -114,22 +114,39 @@ class UserConfigView(viewsets.ViewSet):
 class SysUserConfigView(viewsets.ViewSet):
     authentication_classes = [ApiAuthentication]
 
-    # TODO: Find a way to create only put method for this class
+    def create(self, request):
+        message_dict = {
+            'message': 'That\'s all folks',
+            'status_code': 200
+        }
+
+        return response_message(message_dict)
+
     def put(self, request, pk=None):
-        serializer = SysUserSerializer(data=request.data, partial=True)
         success, owner = get_owner(request)
 
         if not success:
             return response_message(owner)
 
-        if serializer.is_valid():
-            message_dict = {
-                'message': '',
-                'status_code': 200
-            }
-            return response_message(message_dict)
-        else:
-            return get_error_dict(serializer, status_code=400)
+        sys_user: SysUser = owner.sysuser_set.first()
+        is_free_plan = json.loads(request.headers.get('Free-plan'))
+        free_services_count = json.loads(request.headers.get('Free-service-count'))
+
+        extra_info = {
+            'free_plan': is_free_plan,
+            'free_services': free_services_count,
+        }
+
+        sys_user.extra_info = json.dumps(extra_info)
+
+        sys_user.save()
+
+        message_dict = {
+            'message': 'User updated successfully',
+            'status_code': 200,
+            'extra_info': extra_info
+        }
+        return response_message(message_dict)
 
 
 class ServiceConfigView(viewsets.ViewSet):
@@ -177,13 +194,14 @@ class ServiceConfigView(viewsets.ViewSet):
             extra_info: dict = json.loads(sys_user.extra_info)
             free_service_count = Service.objects.filter(owner=owner, is_free=True).count()
 
-            if extra_info.get('free_plan') and free_service_count >= extra_info.get('free_services'):
-                message_dict = {
-                    'message': f'Your plan allows only {extra_info.get("free_services")} free service.',
-                    'status_code': 400
-                }
+            if extra_info.get('free_plan'):
+                if free_service_count >= extra_info.get('free_services'):
+                    message_dict = {
+                        'message': f'Your plan allows only {extra_info.get("free_services")} free service.',
+                        'status_code': 400
+                    }
 
-                return response_message(message_dict)
+                    return response_message(message_dict)
 
             success, cert_dict = certificate_info(validated_data.get('url'))
 

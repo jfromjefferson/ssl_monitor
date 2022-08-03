@@ -25,10 +25,10 @@ environ.Env.read_env()
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)=ero(l)1r+&-u3%##n#kt14nzkiow1_@q9f80%#uw%@6a9ukq'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '.herokuapp.com']
 
@@ -143,4 +143,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-API_KEY = env('API_KEY')
+API_KEY = env('API_KEY') or os.environ.get('API_KEY')
+
+try:
+    from ssl_monitor.local_settings import *
+except ImportError:
+    pass

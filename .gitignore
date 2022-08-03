@@ -16,6 +16,8 @@ Pipfile.lock
 
 dist/
 
+ssl_monitor/local_settings.py
+
 # If you are using PyCharm #
 .idea/**/workspace.xml
 .idea/**/tasks.xml
