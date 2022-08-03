@@ -5,18 +5,30 @@ import OpenSSL
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 
-from api_v1.models import SysUser
-
-
-def get_owner(request: WSGIRequest):
-    sys_user = get_object_or_404(SysUser, uuid=request.headers.get('Sys-user-uuid'))
-
-    return sys_user.owner
+from api_v1.models import SysUser, Owner
 
 
-def get_error_dict(serializer: serializers.ModelSerializer, status_code: int = None):
+def get_owner(request: WSGIRequest) -> [bool, Owner]:
+    success = True
+
+    try:
+        sys_user = get_object_or_404(SysUser, uuid=request.headers.get('Sys-user-uuid'))
+
+        return success, sys_user.owner
+    except Exception as error:
+        success = False
+        message_dict = {
+            'message': 'Missing sys-user authentication',
+            'exception': str(error),
+            'status_code': 400
+        }
+
+        return success, message_dict
+
+
+def get_error_dict(serializer: ModelSerializer, status_code: int = None):
     error_dict = {}
 
     for key, value in serializer.errors.items():

@@ -36,11 +36,12 @@ class SysUser(models.Model):
 class Service(models.Model):
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
-    name = models.CharField(max_length=30)
-    url = models.URLField()
+    name = models.CharField(max_length=30, unique=True)
+    url = models.URLField(unique=True)
     enabled = models.BooleanField(default=True)
     last_seen = models.DateTimeField(auto_now=True)
     ssl_properties = models.TextField(blank=True, null=True)
+    is_free = models.BooleanField(default=False)
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     updated = models.DateTimeField(auto_now=True, auto_now_add=False)
