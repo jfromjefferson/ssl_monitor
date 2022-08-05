@@ -5,7 +5,7 @@ from . import models
 
 
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'owner', 'last_seen', 'is_free', 'created', 'uuid']
+    list_display = ['name', 'owner', 'last_seen', 'is_free', 'send_notification', 'created', 'updated', 'uuid']
     search_fields = ['name', 'last_seen', 'is_free', 'created', 'uuid']
 
 

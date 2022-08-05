@@ -1,9 +1,12 @@
 import json
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets
+from rest_framework.decorators import authentication_classes
+from rest_framework.views import APIView
 
 from api_v1.authentication import ApiAuthentication
 from api_v1.models import SysUser, Owner, Service
@@ -138,6 +141,7 @@ class SysUserConfigView(viewsets.ViewSet):
         }
 
         sys_user.extra_info = json.dumps(extra_info)
+        sys_user.is_free = is_free_plan
 
         sys_user.save()
 
@@ -243,6 +247,40 @@ class ServiceConfigView(viewsets.ViewSet):
 
         message_dict = {
             'message': 'Service deleted successfully',
+            'status_code': 200
+        }
+
+        return response_message(message_dict)
+
+
+class CheckServiceView(APIView):
+    authentication_classes = [ApiAuthentication]
+
+    def get(self, request, *args, **kwargs):
+
+        sys_user_list = SysUser.objects.filter(is_free=False)
+
+        for sys_user_temp in sys_user_list:
+            service_list = Service.objects.filter(owner=sys_user_temp.owner, enabled=True)
+
+            for service_temp in service_list:
+                cert_success, cert_dict = certificate_info(service_temp.url)
+
+                if cert_success:
+                    service_temp.ssl_properties = json.dumps(cert_dict)
+                    service_temp.save()
+
+                    cert_has_expired = cert_dict.get('cert_has_expired')
+
+                    if cert_has_expired and service_temp.send_notification:
+                        print('OII')
+                        # TODO Make request to Firebase Cloud Messaging
+                        pass
+                else:
+                    return response_message(cert_dict)
+
+        message_dict = {
+            'message': 'Operation completed successfully',
             'status_code': 200
         }
 

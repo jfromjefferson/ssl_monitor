@@ -10,5 +10,6 @@ router.register(r'service/config', views.ServiceConfigView, basename='service_co
 router.register(r'sysuser/config', views.SysUserConfigView, basename='sysuser_config')
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('service/check/', views.CheckServiceView.as_view(),    name='check_service'),
 ]

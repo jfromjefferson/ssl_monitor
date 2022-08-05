@@ -65,10 +65,6 @@ def certificate_info(hostname: str) -> [bool, dict]:
             'cert_has_expired': cert_data.has_expired(),
         }
 
-        # extensions = (cert_data.get_extension(i) for i in range(cert_data.get_extension_count()))
-        # extension_data = {e.get_short_name(): str(e) for e in extensions}
-        # cert_data_dict.update(extension_data)
-
         return success, cert_data_dict
     except Exception as error:
         success = False
