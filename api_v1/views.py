@@ -1,6 +1,7 @@
 import json
 from datetime import timedelta
 
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
@@ -21,11 +22,40 @@ class UserConfigView(viewsets.ViewSet):
     serializer_class = UserSerializer
     queryset = ''
 
+    def get(self, request):
+        user = authenticate(username=request.headers.get('Username'), password=request.headers.get('Password'))
+
+        if user:
+            owner = get_object_or_404(Owner, user=user)
+            sys_user = get_object_or_404(SysUser, owner=owner, user=user)
+
+            message_dict = {
+                'sys_user_uuid': str(sys_user.uuid),
+                'status_code': 200
+            }
+
+            return response_message(message_dict)
+        else:
+            message_dict = {
+                'message': 'Invalid username or password',
+                'status_code': 400
+            }
+
+            return response_message(message_dict)
+
     def create(self, request):
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
             validated_data: dict = serializer.validated_data
+
+            if 'first_name' not in validated_data or 'last_name' not in validated_data:
+                message_dict = {
+                    'message': 'Missing first name or last name',
+                    'status_code': 400
+                }
+
+                return response_message(message_dict)
 
             user_obj = User.objects.filter(username=validated_data.get('username')).first()
 
