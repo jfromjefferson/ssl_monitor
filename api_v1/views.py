@@ -246,7 +246,7 @@ class ServiceConfigView(viewsets.ViewSet):
                     'url': validated_data.get('url'),
                     'owner': owner,
                     'ssl_properties': ssl_properties,
-                    'is_free': True if free_service_count <= 0 else False
+                    'is_free': True if free_service_count <= extra_info.get("free_services") else False
                 }
 
                 service: Service = serializer.save(**service_dict)
