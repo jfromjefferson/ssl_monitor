@@ -1,5 +1,5 @@
 
 CUSTOMER_PLAN_BASE = {
     'free_plan': True,
-    'free_services': 1,
+    'free_services': 5,
 }
