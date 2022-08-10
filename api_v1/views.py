@@ -29,7 +29,14 @@ class UserConfigView(viewsets.ViewSet):
             owner = get_object_or_404(Owner, user=user)
             sys_user = get_object_or_404(SysUser, owner=owner, user=user)
 
+            extra_info = {
+                **json.loads(sys_user.extra_info),
+                'free_plan': sys_user.is_free
+            }
+
             message_dict = {
+                'user_full_name': f'{sys_user.user.first_name} {sys_user.user.last_name}',
+                'extra_info': extra_info,
                 'sys_user_uuid': str(sys_user.uuid),
                 'status_code': 200
             }
