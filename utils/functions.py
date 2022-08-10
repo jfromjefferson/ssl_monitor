@@ -34,7 +34,7 @@ def get_error_dict(serializer: ModelSerializer, status_code: int = None):
     for key, value in serializer.errors.items():
         error_dict[key] = value[0]
 
-    error_dict['status_code'] = status_code if status_code else 200
+    # error_dict['status_code'] = status_code if status_code else 200
 
     return JsonResponse(error_dict, status=status_code if status_code else 200)
 
