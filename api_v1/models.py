@@ -37,7 +37,7 @@ class SysUser(models.Model):
 class Service(models.Model):
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
-    name = models.CharField(max_length=30, unique=True)
+    name = models.CharField(max_length=30)
     url = models.URLField(unique=True)
     enabled = models.BooleanField(default=True)
     last_seen = models.DateTimeField(auto_now=True)

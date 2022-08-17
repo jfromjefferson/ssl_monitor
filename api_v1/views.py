@@ -1,12 +1,10 @@
 import json
-from datetime import timedelta
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets
-from rest_framework.decorators import authentication_classes
 from rest_framework.views import APIView
 
 from api_v1.authentication import ApiAuthentication
@@ -274,18 +272,60 @@ class ServiceConfigView(viewsets.ViewSet):
         else:
             return get_error_dict(serializer, status_code=400)
 
+    def put(self, request, *args, **kwargs):
+        serializer = ServiceSerializer(data=request.data, partial=True)
+
+        success, owner = get_owner(request)
+
+        if not success:
+            return response_message(owner)
+
+        service = Service.objects.filter(owner=owner, uuid=request.headers.get('Service-uuid')).first()
+
+        if not service:
+            message_dict = {
+                'message': 'Service not found',
+                'status_code': 400
+            }
+
+            return response_message(message_dict)
+
+        if serializer.is_valid():
+            validated_data: dict = serializer.validated_data
+
+            Service.objects.filter(
+                owner=owner,
+                uuid=request.headers.get('Service-uuid')).update(**validated_data)
+
+            message_dict = {
+                'message': f'Service {validated_data.get("name")} updated successfully',
+                'status_code': 200
+            }
+
+            return response_message(message_dict)
+        else:
+            return get_error_dict(serializer, status_code=400)
+
     def delete(self, request):
         success, owner = get_owner(request)
 
         if not success:
             return response_message(owner)
 
-        Service.objects.filter(uuid=request.headers.get('Service-uuid'), owner=owner).delete()
+        service = Service.objects.filter(uuid=request.headers.get('Service-uuid'), owner=owner).first()
 
-        message_dict = {
-            'message': 'Service deleted successfully',
-            'status_code': 200
-        }
+        if service:
+            service.delete()
+
+            message_dict = {
+                'message': 'Service deleted successfully',
+                'status_code': 200
+            }
+        else:
+            message_dict = {
+                'message': 'This service does not exists',
+                'status_code': 400
+            }
 
         return response_message(message_dict)
 
