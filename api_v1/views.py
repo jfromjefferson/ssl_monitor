@@ -201,11 +201,17 @@ class ServiceConfigView(viewsets.ViewSet):
         service_dict_list = []
 
         for service_temp in service_list:
+            success, cert_dict = certificate_info(service_temp.url)
+
+            ssl_properties = json.loads(service_temp.ssl_properties)
+            if success:
+                ssl_properties = cert_dict
+
             service_dict_list.append({
                 'name': service_temp.name,
                 'url': service_temp.url,
                 'enabled': service_temp.enabled,
-                'ssl_properties': json.loads(service_temp.ssl_properties),
+                'ssl_properties': ssl_properties,
                 'is_free': service_temp.is_free,
                 'uuid': service_temp.uuid
             })
