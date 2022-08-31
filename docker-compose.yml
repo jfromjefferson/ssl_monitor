@@ -1,0 +1,55 @@
+version: "3.9"
+
+networks:
+  ssl_monitor_network:
+    driver: 'bridge'
+
+
+services:
+  nginx:
+    build: ./nginx/
+    container_name: 'ssl-monitor-nginx'
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - ./ssl_monitor/staticfiles/:/var/www/static/
+    ports:
+      - "8080:80"
+      - "8081:443"
+    networks:
+      - ssl_monitor_network
+    depends_on:
+      - ssl-monitor
+
+  ssl-monitor-db:
+    image: postgres
+    container_name: 'ssl-monitor-db'
+    volumes:
+      - ./data/ssl_monitor_db/:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    networks:
+      - ssl_monitor_network
+
+  ssl-monitor:
+    build: './ssl_monitor/'
+    container_name: 'ssl-monitor-container'
+    command: bash -c "python manage.py collectstatic --noinput  
+      && python manage.py makemigrations
+      && python manage.py migrate
+      && gunicorn ssl_monitor.wsgi --bind 0.0.0.0:8080 --reload"
+    volumes:
+      - ./ssl_monitor/:/ssl_monitor/
+    networks:
+      - ssl_monitor_network
+    environment:
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_HOST=${DATABASE_HOST}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_API_KEY=${DJANGO_API_KEY}
+    depends_on:
+      - ssl-monitor-db

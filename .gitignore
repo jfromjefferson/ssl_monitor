@@ -15,6 +15,7 @@ Pipfile.lock
 *.bak
 
 dist/
+data/
 
 ssl_monitor/local_settings.py
 
