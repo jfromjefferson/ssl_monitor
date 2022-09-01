@@ -26,7 +26,7 @@ DEBUG = os.environ.get('DJANGO_DEBUG') == 'DEBUG'
 
 ALLOWED_HOSTS = ['localhost', 'ssl-monitor:8080', 'ssl-monitor']
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost']
+CSRF_TRUSTED_ORIGINS = ['http://localhost', 'https://*.oitobits.tech']
 
 
 # Application definition
